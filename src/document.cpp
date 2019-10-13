@@ -445,6 +445,12 @@ bool litehtml::document::on_mouse_leave( position::vector& redraw_boxes )
 		return false;
 	}
 	
+	auto selection = get_selection();
+
+	if (selection && selection->is_active()) {
+		selection->set_inactive();
+	}
+	
 	if(m_inline_text_over_element)
 	{
 		m_inline_text_over_element->on_mouse_leave();
@@ -524,6 +530,12 @@ bool litehtml::document::on_lbutton_up( int x, int y, int client_x, int client_y
 	if(!m_root)
 	{
 		return false;
+	}
+	
+	auto selection = get_selection();
+
+	if (selection && selection->is_active()) {
+		selection->set_inactive();
 	}
 	
 	element::ptr inline_text = m_root->get_child_by_point(x, y, client_x, client_y, draw_inline_texts, 0);
