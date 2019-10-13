@@ -375,11 +375,31 @@ void litehtml::document::add_stylesheet( const tchar_t* str, const tchar_t* base
 	}
 }
 
+bool 	litehtml::document::start_selection(const std::shared_ptr<litehtml::element>& start_container, const unsigned int start_offset) {
+	m_selection = std::make_shared<selection>(shared_from_this(), start_container, start_offset, start_container, start_offset+1, true);
+}
 bool litehtml::document::on_mouse_over( int x, int y, int client_x, int client_y, position::vector& redraw_boxes )
 {
 	if(!m_root)
 	{
 		return false;
+	}
+
+	element::ptr inline_text = m_root->get_child_by_point(x, y, client_x, client_y, draw_inline_texts, 0);
+
+	if(inline_text != m_inline_text_over_element)
+	{
+		if(m_inline_text_over_element)
+		{
+			m_inline_text_over_element->on_mouse_leave();
+		}
+		
+		m_inline_text_over_element = inline_text;
+	}
+	
+	if(inline_text)
+	{
+		inline_text->on_mouse_over(x, y, client_x, client_y);
 	}
 
 	element::ptr over_el = m_root->get_element_by_point(x, y, client_x, client_y);
@@ -402,7 +422,7 @@ bool litehtml::document::on_mouse_over( int x, int y, int client_x, int client_y
 
 	if(m_over_element)
 	{
-		if(m_over_element->on_mouse_over())
+		if(m_over_element->on_mouse_over(x, y, client_x, client_y))
 		{
 			state_was_changed = true;
 		}
@@ -424,6 +444,12 @@ bool litehtml::document::on_mouse_leave( position::vector& redraw_boxes )
 	{
 		return false;
 	}
+	
+	if(m_inline_text_over_element)
+	{
+		m_inline_text_over_element->on_mouse_leave();
+	}
+	
 	if(m_over_element)
 	{
 		if(m_over_element->on_mouse_leave())
@@ -439,6 +465,14 @@ bool litehtml::document::on_lbutton_down( int x, int y, int client_x, int client
 	if(!m_root)
 	{
 		return false;
+	}
+	
+	
+	element::ptr inline_text = m_root->get_child_by_point(x, y, client_x, client_y, draw_inline_texts, 0);
+
+	if(inline_text)
+	{
+		inline_text->on_lbutton_down(x, y, client_x, client_y);
 	}
 
 	element::ptr over_el = m_root->get_element_by_point(x, y, client_x, client_y);
@@ -457,7 +491,7 @@ bool litehtml::document::on_lbutton_down( int x, int y, int client_x, int client
 		m_over_element = over_el;
 		if(m_over_element)
 		{
-			if(m_over_element->on_mouse_over())
+			if(m_over_element->on_mouse_over(x, y, client_x, client_y))
 			{
 				state_was_changed = true;
 			}
@@ -468,7 +502,7 @@ bool litehtml::document::on_lbutton_down( int x, int y, int client_x, int client
 
 	if(m_over_element)
 	{
-		if(m_over_element->on_lbutton_down())
+		if(m_over_element->on_lbutton_down(x, y, client_x, client_y))
 		{
 			state_was_changed = true;
 		}
@@ -491,9 +525,17 @@ bool litehtml::document::on_lbutton_up( int x, int y, int client_x, int client_y
 	{
 		return false;
 	}
+	
+	element::ptr inline_text = m_root->get_child_by_point(x, y, client_x, client_y, draw_inline_texts, 0);
+
+	if(inline_text)
+	{
+		inline_text->on_lbutton_up(x, y, client_x, client_y);
+	}
+	
 	if(m_over_element)
 	{
-		if(m_over_element->on_lbutton_up())
+		if(m_over_element->on_lbutton_up(x, y, client_x, client_y))
 		{
 			return m_root->find_styles_changes(redraw_boxes, 0, 0);
 		}

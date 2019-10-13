@@ -1743,8 +1743,7 @@ void litehtml::html_tag::get_inline_boxes( position::vector& boxes )
 		}
 	}
 }
-
-bool litehtml::html_tag::on_mouse_over()
+bool litehtml::html_tag::on_mouse_over(int x, int y, int client_x, int client_y)
 {
 	bool ret = false;
 
@@ -1854,7 +1853,7 @@ bool litehtml::html_tag::on_mouse_leave()
 	return ret;
 }
 
-bool litehtml::html_tag::on_lbutton_down()
+bool litehtml::html_tag::on_lbutton_down(int x, int y, int client_x, int client_y)
 {
     bool ret = false;
 
@@ -1871,7 +1870,7 @@ bool litehtml::html_tag::on_lbutton_down()
     return ret;
 }
 
-bool litehtml::html_tag::on_lbutton_up()
+bool litehtml::html_tag::on_lbutton_up(int x, int y, int client_x, int client_y)
 {
 	bool ret = false;
 
@@ -3712,12 +3711,12 @@ litehtml::element::ptr litehtml::html_tag::get_child_by_point(int x, int y, int 
 	{
 		element::ptr el = (*i);
 
-		if(el->is_visible() && el->get_display() != display_inline_text)
+		if(el->is_visible())
 		{
 			switch(flag)
 			{
 			case draw_positioned:
-				if(el->is_positioned() && el->get_zindex() == zindex)
+				if(el->is_positioned() && el->get_zindex() == zindex  && el->get_display() != display_inline_text)
 				{
 					if(el->get_element_position() == element_position_fixed)
 					{
@@ -3738,7 +3737,7 @@ litehtml::element::ptr litehtml::html_tag::get_child_by_point(int x, int y, int 
 				}
 				break;
 			case draw_block:
-				if(!el->is_inline_box() && el->get_float() == float_none && !el->is_positioned())
+				if(!el->is_inline_box() && el->get_float() == float_none && !el->is_positioned() && el->get_display() != display_inline_text)
 				{
 					if(el->is_point_inside(pos.x, pos.y))
 					{
@@ -3747,7 +3746,7 @@ litehtml::element::ptr litehtml::html_tag::get_child_by_point(int x, int y, int 
 				}
 				break;
 			case draw_floats:
-				if(el->get_float() != float_none && !el->is_positioned())
+				if(el->get_float() != float_none && !el->is_positioned() && el->get_display() != display_inline_text)
 				{
 					ret = el->get_element_by_point(pos.x, pos.y, client_x, client_y);
 
@@ -3759,13 +3758,24 @@ litehtml::element::ptr litehtml::html_tag::get_child_by_point(int x, int y, int 
 				}
 				break;
 			case draw_inlines:
-				if(el->is_inline_box() && el->get_float() == float_none && !el->is_positioned())
+				if(el->is_inline_box() && el->get_float() == float_none && !el->is_positioned() && el->get_display() != display_inline_text)
 				{
 					if(el->get_display() == display_inline_block)
 					{
 						ret = el->get_element_by_point(pos.x, pos.y, client_x, client_y);
 						el = 0;
 					}
+					if(!ret && (*i)->is_point_inside(pos.x, pos.y))
+					{
+						ret = (*i);
+					}
+				}
+				break;
+			case draw_inline_texts:
+				if(el->get_display() == display_inline_text)
+				{
+					ret = el->get_element_by_point(pos.x, pos.y, client_x, client_y);
+					el = 0;
 					if(!ret && (*i)->is_point_inside(pos.x, pos.y))
 					{
 						ret = (*i);

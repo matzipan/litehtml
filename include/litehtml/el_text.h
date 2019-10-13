@@ -14,6 +14,7 @@ namespace litehtml
 		text_transform	m_text_transform;
 		bool			m_use_transformed;
 		bool			m_draw_spaces;
+		bool			m_button_down = false;
 	public:
 		el_text(const tchar_t* text, const std::shared_ptr<litehtml::document>& doc);
 		virtual ~el_text();
@@ -29,6 +30,11 @@ namespace litehtml
 		virtual white_space			get_white_space() const override;
 		virtual element_position	get_element_position(css_offsets* offsets = 0) const override;
 		virtual css_offsets			get_css_offsets() const override;
+		virtual bool				on_mouse_over(int x, int y, int client_x, int client_y) override;
+		virtual bool				on_mouse_leave() override;
+		virtual bool				on_lbutton_down(int x, int y, int client_x, int client_y) override;
+		virtual bool				on_lbutton_up(int x, int y, int client_x, int client_y) override;
+
 
 	protected:
 		virtual void				get_content_size(size& sz, int max_width) override;

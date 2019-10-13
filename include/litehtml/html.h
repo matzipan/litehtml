@@ -61,6 +61,7 @@ namespace litehtml
 
 		virtual void				get_media_features(litehtml::media_features& media) const = 0;
 		virtual void				get_language(litehtml::tstring& language, litehtml::tstring & culture) const = 0;
+		virtual int 				get_text_offset_of_mouse_pointer(const litehtml::position& mouse_position, const litehtml::tchar_t* text, litehtml::uint_ptr hFont) = 0;
 		virtual litehtml::tstring	resolve_color(const litehtml::tstring& color) const  { return litehtml::tstring(); }
 	};
 

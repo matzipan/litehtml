@@ -179,6 +179,7 @@ namespace litehtml
 		draw_block,
 		draw_floats,
 		draw_inlines,
+		draw_inline_texts,
 		draw_positioned,
 	};
 

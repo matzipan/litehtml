@@ -51,4 +51,7 @@ void container_test::get_language(litehtml::tstring& language, litehtml::tstring
   language = _t("en");
   culture = _t("");
 }
+
+int	container_test::get_text_offset_of_mouse_pointer(const litehtml::position& mouse_position, const litehtml::tchar_t* text, litehtml::uint_ptr hFont) { return 0; }
+
 //: resolve_color

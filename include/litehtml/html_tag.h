@@ -146,11 +146,11 @@ namespace litehtml
 		virtual bool				is_body() const override;
 		virtual bool				is_break() const override;
 		virtual int					get_base_line() override;
-		virtual bool				on_mouse_over() override;
-		virtual bool				on_mouse_leave() override;
-		virtual bool				on_lbutton_down() override;
-		virtual bool				on_lbutton_up() override;
-		virtual void				on_click() override;
+		virtual bool				on_mouse_over(int x, int y, int client_x, int client_y);
+		virtual bool				on_mouse_leave();
+		virtual bool				on_lbutton_down(int x, int y, int client_x, int client_y);
+		virtual bool				on_lbutton_up(int x, int y, int client_x, int client_y);
+		virtual void				on_click();
 		virtual bool				find_styles_changes(position::vector& redraw_boxes, int x, int y) override;
 		virtual const tchar_t*		get_cursor() override;
 		virtual void				init_font() override;

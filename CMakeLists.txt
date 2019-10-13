@@ -38,6 +38,7 @@ set(SOURCE_LITEHTML
     src/html_tag.cpp
     src/iterators.cpp
     src/media_query.cpp
+    src/selection.cpp
     src/style.cpp
     src/stylesheet.cpp
     src/table.cpp

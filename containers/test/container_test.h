@@ -41,4 +41,6 @@ public:
 	virtual	void						set_cursor(const litehtml::tchar_t* cursor) override;
 	virtual void						import_css(litehtml::tstring& text, const litehtml::tstring& url, litehtml::tstring& baseurl) override;
 	virtual void						get_client_rect(litehtml::position& client) const override;
+	virtual int 						get_text_offset_of_mouse_pointer(const litehtml::position& mouse_position, const litehtml::tchar_t* text, litehtml::uint_ptr hFont) override;
+
 };

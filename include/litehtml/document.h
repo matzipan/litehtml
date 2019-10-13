@@ -3,6 +3,7 @@
 
 #include "style.h"
 #include "types.h"
+#include "selection.h"
 #include "context.h"
 
 namespace litehtml
@@ -55,6 +56,7 @@ namespace litehtml
 		typedef std::weak_ptr<document>		weak_ptr;
 	private:
 		std::shared_ptr<element>			m_root;
+		std::shared_ptr<selection>			m_selection;
 		document_container*					m_container;
 		fonts_map							m_fonts;
 		css_text::vector					m_css;
@@ -65,6 +67,7 @@ namespace litehtml
 		position::vector					m_fixed_boxes;
 		media_query_list::vector			m_media_lists;
 		element::ptr						m_over_element;
+		element::ptr						m_inline_text_over_element;
 		elements_vector						m_tabular_elements;
 		media_features						m_media;
 		tstring                             m_lang;
@@ -89,6 +92,7 @@ namespace litehtml
 		bool							on_mouse_leave(position::vector& redraw_boxes);
 		litehtml::element::ptr			create_element(const tchar_t* tag_name, const string_map& attributes);
 		element::ptr					root();
+		selection::ptr				get_selection();
 		void							get_fixed_boxes(position::vector& fixed_boxes);
 		void							add_fixed_box(const position& pos);
 		void							add_media_list(media_query_list::ptr list);
@@ -97,6 +101,10 @@ namespace litehtml
 		bool                            match_lang(const tstring & lang);
 		void							add_tabular(const element::ptr& el);
 		const element::const_ptr		get_over_element() const { return m_over_element; }
+		bool 							start_selection(
+		  const std::shared_ptr<litehtml::element>& start_container,
+		  const unsigned int start_offset
+		);
 
 		static litehtml::document::ptr createFromString(const tchar_t* str, litehtml::document_container* objPainter, litehtml::context* ctx, litehtml::css* user_styles = 0);
 		static litehtml::document::ptr createFromUTF8(const char* str, litehtml::document_container* objPainter, litehtml::context* ctx, litehtml::css* user_styles = 0);
@@ -115,6 +123,12 @@ namespace litehtml
 	{
 		return m_root;
 	}
+	
+	inline selection::ptr document::get_selection()
+	{
+		return m_selection;
+	}
+	
 	inline void document::add_tabular(const element::ptr& el)
 	{
 		m_tabular_elements.push_back(el);

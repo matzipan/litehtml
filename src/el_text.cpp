@@ -123,6 +123,44 @@ void litehtml::el_text::draw( uint_ptr hdc, int x, int y, const position* clip )
 	}
 }
 
+bool litehtml::el_text::on_mouse_over(int x, int y, int client_x, int client_y) {
+	auto element_placement = get_placement();
+	
+	litehtml::position mouse_position_relative_to_element;
+	
+	mouse_position_relative_to_element.x = x - element_placement.x;
+	mouse_position_relative_to_element.y = y - element_placement.y;
+	
+	uint_ptr font = get_font();
+	auto document = get_document();
+	
+	int text_offset = document->container()->get_text_offset_of_mouse_pointer(mouse_position_relative_to_element, m_use_transformed ? m_transformed_text.c_str() : m_text.c_str(), font);
+
+	if(text_offset >= 0) {
+		auto selection = document->get_selection();
+		if(selection && selection->is_active()) {
+			selection->update_end(shared_from_this(), text_offset+1);
+		} else if (m_button_down) {
+			// The mouse pointer is being dragged, so we start a selection
+			document->start_selection(shared_from_this(), text_offset);
+		}
+	}
+
+	return false;
+}
+
+bool litehtml::el_text::on_mouse_leave() {
+	m_button_down = false;
+}
+
+bool litehtml::el_text::on_lbutton_down(int x, int y, int client_x, int client_y) {
+	m_button_down = true;
+}
+
+bool litehtml::el_text::on_lbutton_up(int x, int y, int client_x, int client_y) {	
+	m_button_down = false;
+}
+
 int litehtml::el_text::line_height() const
 {
 	element::ptr el_parent = parent();
