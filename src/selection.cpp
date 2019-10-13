@@ -1,6 +1,7 @@
 #include "html.h"
 #include "selection.h"
 
+#include <iostream>
 litehtml::selection::selection(
   const std::shared_ptr<litehtml::document>& doc,
   const std::shared_ptr<litehtml::element> &start_container,
@@ -13,6 +14,7 @@ litehtml::selection::selection(
   m_end_offset(end_offset),
   m_active(active)
 {
+   std::cout<<"CREATED "<<start_offset<<" "<<end_offset<<"\n";
 }
 
 bool litehtml::selection::update_end(
@@ -26,6 +28,7 @@ bool litehtml::selection::update_end(
   m_end_container = new_end_container;
   m_end_offset = new_end_offset;
   
+  std::cout<<"UPDATED "<<m_start_offset<<" "<<m_end_offset<<"\n";
   
   return end_changed;
 }

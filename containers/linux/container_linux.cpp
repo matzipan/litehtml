@@ -1,6 +1,7 @@
 #include "container_linux.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <pango/pangocairo.h>
 
 #ifndef M_PI
 #       define M_PI    3.14159265358979323846
@@ -21,157 +22,149 @@ container_linux::~container_linux(void)
 
 litehtml::uint_ptr container_linux::create_font( const litehtml::tchar_t* faceName, int size, int weight, litehtml::font_style italic, unsigned int decoration, litehtml::font_metrics* fm )
 {
-	litehtml::string_vector fonts;
-	litehtml::split_string(faceName, fonts, ",");
-	litehtml::trim(fonts[0]);
+	PangoContext* context = NULL;
+	PangoFontDescription* desc = NULL;
+ 	PangoFontMap* font_map = NULL;
 
-	cairo_font_face_t* fnt = 0;
+	font_map = pango_cairo_font_map_new();
+  if (NULL == font_map) {
+    printf("+ error: cannot create the pango font map.\n");
+    exit(EXIT_FAILURE);
+  }
 
-	FcPattern *pattern = FcPatternCreate();
-	bool found = false;
-	for(litehtml::string_vector::iterator i = fonts.begin(); i != fonts.end(); i++)
-	{
-		if(FcPatternAddString(pattern, FC_FAMILY, (unsigned char *) i->c_str()))
-		{
-			found = true;
-			break;
-		}
-	}
-	if(found)
-	{
-		if(italic == litehtml::fontStyleItalic )
-		{
-			FcPatternAddInteger (pattern, FC_SLANT, FC_SLANT_ITALIC);
-		} else
-		{
-			FcPatternAddInteger (pattern, FC_SLANT, FC_SLANT_ROMAN);
-		}
+  context = pango_font_map_create_context(font_map);
+  if (NULL == context) {
+    printf("+ error: cannot create pango font context.\n");
+    exit(EXIT_FAILURE);
+  }
 
-		int fc_weight = FC_WEIGHT_NORMAL;
-		if(weight >= 0 && weight < 150)			fc_weight = FC_WEIGHT_THIN;
-		else if(weight >= 150 && weight < 250)	fc_weight = FC_WEIGHT_EXTRALIGHT;
-		else if(weight >= 250 && weight < 350)	fc_weight = FC_WEIGHT_LIGHT;
-		else if(weight >= 350 && weight < 450)	fc_weight = FC_WEIGHT_NORMAL;
-		else if(weight >= 450 && weight < 550)	fc_weight = FC_WEIGHT_MEDIUM;
-		else if(weight >= 550 && weight < 650)	fc_weight = FC_WEIGHT_SEMIBOLD;
-		else if(weight >= 650 && weight < 750)	fc_weight = FC_WEIGHT_BOLD;
-		else if(weight >= 750 && weight < 850)	fc_weight = FC_WEIGHT_EXTRABOLD;
-		else if(weight >= 950)					fc_weight = FC_WEIGHT_BLACK;
+	desc = pango_font_description_from_string(faceName);
 
-		FcPatternAddInteger (pattern, FC_WEIGHT, fc_weight);
+	PangoLayout *layout;
+	layout = pango_layout_new (context);
 
-		fnt = cairo_ft_font_face_create_for_pattern(pattern);
-	}
+	pango_layout_set_text(layout, "x", -1);
 
-	FcPatternDestroy(pattern);
+	PangoRectangle ink_rect;
+	PangoRectangle logical_rect;
+	pango_layout_get_pixel_extents(layout, &ink_rect, &logical_rect);
 
-	cairo_font* ret = 0;
+	fm->ascent		= PANGO_ASCENT(logical_rect);
+	fm->descent	  = PANGO_DESCENT(logical_rect);
+	fm->height		= logical_rect.height;
+	fm->x_height	= logical_rect.height;
 
-	if(fm && fnt)
-	{
-		cairo_save(m_temp_cr);
+	g_object_unref(layout);
+	g_object_unref(font_map);
+	g_object_unref(context);
 
-		cairo_set_font_face(m_temp_cr, fnt);
-		cairo_set_font_size(m_temp_cr, size);
-		cairo_font_extents_t ext;
-		cairo_font_extents(m_temp_cr, &ext);
-
-		cairo_text_extents_t tex;
-		cairo_text_extents(m_temp_cr, "x", &tex);
-
-		fm->ascent		= (int) ext.ascent;
-		fm->descent		= (int) ext.descent;
-		fm->height		= (int) (ext.ascent + ext.descent);
-		fm->x_height	= (int) tex.height;
-
-		cairo_restore(m_temp_cr);
-
-		ret = new cairo_font;
-		ret->font		= fnt;
-		ret->size		= size;
-		ret->strikeout 	= (decoration & litehtml::font_decoration_linethrough) ? true : false;
-		ret->underline	= (decoration & litehtml::font_decoration_underline) ? true : false;
-
-	}
-
-	return (litehtml::uint_ptr) ret;
+	return (litehtml::uint_ptr) desc;
 }
 
 void container_linux::delete_font( litehtml::uint_ptr hFont )
 {
-	cairo_font* fnt = (cairo_font*) hFont;
-	if(fnt)
-	{
-		cairo_font_face_destroy(fnt->font);
-		delete fnt;
-	}
+	PangoFontDescription* desc = (PangoFontDescription*) hFont;
+	pango_font_description_free(desc);
 }
 
 int container_linux::text_width( const litehtml::tchar_t* text, litehtml::uint_ptr hFont )
 {
-	cairo_font* fnt = (cairo_font*) hFont;
+	PangoFontDescription* desc = (PangoFontDescription*) hFont;
+	PangoContext *context;
+	PangoFontMap* font_map = NULL;
 
-	cairo_save(m_temp_cr);
+	font_map = pango_cairo_font_map_new();
+	if (NULL == font_map) {
+		printf("+ error: cannot create the pango font map.\n");
+		exit(EXIT_FAILURE);
+	}
 
-	cairo_set_font_size(m_temp_cr, fnt->size);
-	cairo_set_font_face(m_temp_cr, fnt->font);
-	cairo_text_extents_t ext;
-	cairo_text_extents(m_temp_cr, text, &ext);
+	context = pango_font_map_create_context(font_map);
+	if (NULL == context) {
+		printf("+ error: cannot create pango font context.\n");
+		exit(EXIT_FAILURE);
+	}
 
-	cairo_restore(m_temp_cr);
+	PangoLayout *layout;
+	layout = pango_layout_new (context);
+	pango_layout_set_text (layout, text, -1);
+	pango_layout_set_font_description (layout, desc);
 
-	return (int) ext.x_advance;
+	int width, height;
+	pango_layout_get_size (layout, &width, &height);
+
+	g_object_unref(layout);
+	g_object_unref(context);
+
+	return width / PANGO_SCALE;
+
 }
+
+int container_linux::get_text_offset_of_mouse_pointer(const litehtml::position& mouse_position, const litehtml::tchar_t* text, litehtml::uint_ptr hFont) {
+	PangoFontDescription* desc = (PangoFontDescription*) hFont;
+	PangoContext *context;
+	PangoFontMap* font_map = NULL;
+
+	font_map = pango_cairo_font_map_new();
+	if (NULL == font_map) {
+		printf("+ error: cannot create the pango font map.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	context = pango_font_map_create_context(font_map);
+	if (NULL == context) {
+		printf("+ error: cannot create pango font context.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	PangoLayout *layout;
+	layout = pango_layout_new (context);
+	pango_layout_set_text (layout, text, -1);
+	pango_layout_set_font_description (layout, desc);
+	
+	int index, trailing;
+	
+	int status = pango_layout_xy_to_index(layout, mouse_position.x * PANGO_SCALE, mouse_position.y * PANGO_SCALE, &index, &trailing);
+	
+	printf("INDEX %d CHARACTER %c\n", index, text[index]);
+	
+	g_object_unref(layout);
+	g_object_unref(context);
+	
+	if(status) {
+		return index;
+	} else {
+		return -1;
+	}
+}
+
+
+#include <iostream>
 
 void container_linux::draw_text( litehtml::uint_ptr hdc, const litehtml::tchar_t* text, litehtml::uint_ptr hFont, litehtml::web_color color, const litehtml::position& pos )
 {
-	cairo_font* fnt = (cairo_font*) hFont;
 	cairo_t* cr		= (cairo_t*) hdc;
 	cairo_save(cr);
 
 	apply_clip(cr);
 
-	cairo_set_font_face(cr, fnt->font);
-	cairo_set_font_size(cr, fnt->size);
-	cairo_font_extents_t ext;
-	cairo_font_extents(cr, &ext);
+  PangoLayout *layout;
+	PangoFontDescription* desc = (PangoFontDescription*) hFont;
 
-	int x = pos.left();
-	int y = pos.bottom()	- ext.descent;
+  layout = pango_cairo_create_layout (cr);
+  pango_layout_set_text (layout, text, -1);
+	pango_layout_set_font_description (layout, desc);
 
-	set_color(cr, color);
+  int width, height;
+  pango_layout_get_size (layout, &width, &height);
 
-	cairo_move_to(cr, x, y);
-	cairo_show_text(cr, text);
+	cairo_move_to(cr, pos.left(), pos.bottom() - height / PANGO_SCALE);
 
-	int tw = 0;
-
-	if(fnt->underline || fnt->strikeout)
-	{
-		tw = text_width(text, hFont);
-	}
-
-	if(fnt->underline)
-	{
-		cairo_set_line_width(cr, 1);
-		cairo_move_to(cr, x, y + 1.5);
-		cairo_line_to(cr, x + tw, y + 1.5);
-		cairo_stroke(cr);
-	}
-	if(fnt->strikeout)
-	{
-		cairo_text_extents_t tex;
-		cairo_text_extents(cr, "x", &tex);
-
-		int ln_y = y - tex.height / 2.0;
-
-		cairo_set_line_width(cr, 1);
-		cairo_move_to(cr, x, (double) ln_y - 0.5);
-		cairo_line_to(cr, x + tw, (double) ln_y - 0.5);
-		cairo_stroke(cr);
-	}
+	pango_cairo_show_layout (cr, layout);
 
 	cairo_restore(cr);
+
+	g_object_unref(layout);
 }
 
 int container_linux::pt_to_px( int pt )
@@ -878,7 +871,10 @@ void container_linux::get_language(litehtml::tstring& language, litehtml::tstrin
 	culture = _t("");
 }
 
+#include <iostream>
 void container_linux::link(const std::shared_ptr<litehtml::document> &ptr, const litehtml::element::ptr& el)
 {
+
+		std::cout<<"BLA";
 
 }

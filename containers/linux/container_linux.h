@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../include/litehtml.h"
-#include <cairo.h>
+#include <cairo/cairo.h>
 #include <gtkmm.h>
 
 struct cairo_clip_box
@@ -76,6 +76,7 @@ public:
 
 	virtual void						make_url( const litehtml::tchar_t* url, const litehtml::tchar_t* basepath, litehtml::tstring& out );
 	virtual Glib::RefPtr<Gdk::Pixbuf>	get_image(const litehtml::tchar_t* url, bool redraw_on_ready) = 0;
+	virtual int       			get_text_offset_of_mouse_pointer(const litehtml::position& mouse_position, const litehtml::tchar_t* text, litehtml::uint_ptr hFont) override;
 
 	void								clear_images();
 

@@ -169,3 +169,14 @@ if (BUILD_TESTING)
     add_test(NAME mediaQueryTest COMMAND ${TEST_NAME} 5)
     add_test(NAME webColorTest COMMAND ${TEST_NAME} 6)
 endif()
+
+include(FindPkgConfig)
+pkg_search_module(CAIRO REQUIRED cairo)
+pkg_search_module(GTKMM REQUIRED gtkmm-3.0)
+pkg_search_module(FONTCONFIG REQUIRED fontconfig)
+
+add_executable(linux-container containers/linux/container_linux.cpp containers/linux/main.cpp)
+
+target_link_libraries(linux-container ${PROJECT_NAME} ${CAIRO_LIBRARIES} ${GTKMM_LIBRARIES} ${FONTCONFIG_LIBRARIES})
+
+target_include_directories(linux-container PRIVATE ${CAIRO_INCLUDE_DIRS} ${GTKMM_INCLUDE_DIRS} ${FONTCONFIG_INCLUDE_DIRS})
